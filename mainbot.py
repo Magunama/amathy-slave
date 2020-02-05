@@ -4,7 +4,7 @@ import json
 import itertools
 from utils.embed import Embed
 from os import listdir
-from utils.checks import check_logging
+from utils.checks import check_logging_enabled
 
 
 def get_prefix(bot, message):
@@ -55,22 +55,30 @@ async def on_shard_ready(shard):
 
 @bot.event
 async def on_raw_message_delete(payload):
-    # payload consists of RawMessageDeleteEvent
+    # Payload consists of RawMessageDeleteEvent
 
-    if hasattr(payload, "guild_id"):
-        guild_id = payload.guild_id
-        if not check_logging(guild_id):
-            return
-        with open(f"data/guilds/{guild_id}/logging.json") as f:
-            data = json.load(f)
+    dest_id = check_logging_enabled(payload)
+    if dest_id == 0:
+        return
+    payload.bot_user = bot.user
+    dest_chan = bot.get_channel(dest_id)
+    embs = Embed().message_delete(payload)
+    for e in embs:
+        await dest_chan.send(embed=e)
 
-        dest_id = int(data["channel_id"])
-        if dest_id == 0:
-            return
-        payload.bot_user = bot.user
-        dest_chan = bot.get_channel(dest_id)
-        emb = Embed().message_delete(payload)
-        await dest_chan.send(embed=emb)
+
+@bot.event
+async def on_raw_bulk_message_delete(payload):
+    # Payload consists of RawBulkMessageDeleteEvent
+
+    dest_id = check_logging_enabled(payload)
+    if dest_id == 0:
+        return
+    payload.bot_user = bot.user
+    dest_chan = bot.get_channel(dest_id)
+    embs = Embed().bulk_message_delete(payload)
+    for e in embs:
+        await dest_chan.send(embed=e)
 
 
 @bot.event

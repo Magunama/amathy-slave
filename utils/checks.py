@@ -47,3 +47,15 @@ def check_create_logging(guild_id, chan_id):
         logging_base = {"channel_id": str(chan_id), "events_disabled": []}
         logging_str = json.dumps(logging_base, indent=4)
         check_create_file(f"data/guilds/{guild_id}/logging.json", logging_str)
+
+
+def check_logging_enabled(payload):
+    # Returns log channel id if enabled, else returns 0
+    if hasattr(payload, "guild_id"):
+        guild_id = payload.guild_id
+        if not check_logging(guild_id):
+            return
+        with open(f"data/guilds/{guild_id}/logging.json") as f:
+            data = json.load(f)
+        return int(data["channel_id"])
+    return 0

@@ -47,10 +47,34 @@ class Embed:
             cached_mess = payload.cached_message
             if hasattr(cached_mess, "author"):
                 author = cached_mess.author
+                if author.bot:
+                    return []
                 chan_mention = cached_mess.channel.mention
                 desc = f"A message sent by `{author}` in {chan_mention} was deleted."
                 fields = [["Content", cached_mess.content[:1000], None]]
         title = "Reporting for duty!"
         footer = f"Message id: {mess_id}"
+        embed_author = {"name": payload.bot_user.name, "icon_url": payload.bot_user.avatar_url}
+        return [self.make_emb(title, desc, embed_author, fields, footer)]
+
+    def bulk_message_delete(self, payload):
+        chan_id = payload.channel_id
+        cached_messages = payload.cached_messages
+        mess_count = len(cached_messages)
+
+        title = "Reporting for duty!"
         author = {"name": payload.bot_user.name, "icon_url": payload.bot_user.avatar_url}
-        return self.make_emb(title, desc, author, fields, footer)
+        desc = f"{mess_count} sent in channel with id {chan_id} were deleted."
+        fields = [[None, None, None]]
+        if not cached_messages:
+            return [self.make_emb(title, desc, author, fields)]
+        embeds = []
+        for mess in cached_messages:
+            if hasattr(mess, "author"):
+                if not mess.author.bot:
+                    chan_mention = mess.channel.mention
+                    desc = f"A message sent by `{mess.author}` in {chan_mention} was deleted."
+                    fields = [["Content", mess.content[:1000], None]]
+                    footer = f"Message id: {mess.id}"
+                    embeds.append(self.make_emb(title, desc, author, fields, footer))
+        return embeds
