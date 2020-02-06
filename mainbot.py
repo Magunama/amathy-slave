@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import json
 import itertools
 from utils.embed import Embed
 from os import listdir
@@ -9,7 +8,7 @@ from utils.checks import check_logging_enabled
 
 def get_prefix(bot, message):
     fullpref = list()
-    prefixes = ["c"]
+    prefixes = ["c ", "°"]
     for k in prefixes:
         fullpref.extend(map(''.join, itertools.product(*zip(k.upper(), k.lower()))))
     return commands.when_mentioned_or(*fullpref)(bot, message)
@@ -58,7 +57,7 @@ async def on_raw_message_delete(payload):
     # Payload consists of RawMessageDeleteEvent
 
     dest_id = check_logging_enabled(payload)
-    if dest_id == 0:
+    if not dest_id:
         return
     payload.bot_user = bot.user
     dest_chan = bot.get_channel(dest_id)
@@ -72,7 +71,7 @@ async def on_raw_bulk_message_delete(payload):
     # Payload consists of RawBulkMessageDeleteEvent
 
     dest_id = check_logging_enabled(payload)
-    if dest_id == 0:
+    if not dest_id:
         return
     payload.bot_user = bot.user
     dest_chan = bot.get_channel(dest_id)
