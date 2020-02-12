@@ -3,6 +3,7 @@ import psutil
 import platform
 from utils.embed import Embed
 
+
 class Main(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -57,6 +58,7 @@ class Main(commands.Cog):
         author = {"name": ctx.bot.user.name, "icon_url": ctx.bot.user.avatar_url}
         desc = "Here are some details about system resources."
         await ctx.send(embed=Embed().make_emb(title, desc, author, fields, footer))
+
 
 def setup(bot):
     bot.add_cog(Main(bot))

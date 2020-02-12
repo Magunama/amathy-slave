@@ -50,18 +50,16 @@ def check_create_logging(guild_id, chan_id):
         check_create_file(f"data/guilds/{guild_id}/logging.json", logging_str)
 
 
-def check_logging_enabled(payload):
+def check_logging_enabled(guild_id):
     # Returns logging channel id if enabled, else returns None
-    chan_id = None
-    if hasattr(payload, "guild_id"):
-        guild_id = payload.guild_id
-        if not check_logging(guild_id):
-            return None
-        with open(f"data/guilds/{guild_id}/logging.json") as f:
-            data = json.load(f)
-        chan_id = int(data["channel_id"])
-        if chan_id == 0:
-            chan_id = None
+
+    if not check_logging(guild_id):
+        return None
+    with open(f"data/guilds/{guild_id}/logging.json") as f:
+        data = json.load(f)
+    chan_id = int(data["channel_id"])
+    if chan_id == 0:
+        chan_id = None
     return chan_id
 
 

@@ -10,7 +10,7 @@ import json
 class Log(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.events = ["message_delete", "bulk_message_delete"]
+        self.events = ["message_delete", "bulk_message_delete", "member_join", "member_remove", "member_ban", "member_unban"]
 
     @commands.group(aliases=["logs"])
     async def log(self, ctx):

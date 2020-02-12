@@ -1,6 +1,7 @@
 import discord
 import random
 import datetime
+import json
 
 
 class Embed:
@@ -78,3 +79,38 @@ class Embed:
                     footer = f"Message id: {mess.id}"
                     embeds.append(self.make_emb(title, desc, author, fields, footer))
         return embeds
+
+    def message_edit(self, bot, payload):
+        message_id = payload.message_id
+        chan_obj = bot.get_channel(payload.channel_id)
+        data = payload.data
+        after_cont = data["content"]
+        mess_author = data["author"]["username"] + "#" + data["author"]["discriminator"]
+        title = "Reporting for duty!"
+        author = {"name": bot.user.name, "icon_url": bot.user.avatar_url}
+        desc = f"`{mess_author}` edited their message in {chan_obj.mention}"
+        footer = f"Message id: {message_id}"
+        fields = [["After message", after_cont, False]]
+        cached_mess = payload.cached_message
+        if hasattr(cached_mess, "content"):
+            before_cont = cached_mess.content
+            fields.insert(0, ["Before message", before_cont, False])
+        return [self.make_emb(title, desc, author, fields, footer)]
+
+    def member_join_left(self, bot, member, action):
+        title = "Reporting for duty!"
+        author = {"name": bot.user.name, "icon_url": bot.user.avatar_url}
+        desc = f"`{member}` just {action} the server."
+        footer = f"Member id: {member.id}"
+        fields = [[None, None, None]]
+        return [self.make_emb(title, desc, author, fields, footer)]
+
+    def member_ban_unban(self, bot, entry):
+        action = entry.action.name
+        title = "Reporting for duty!"
+        author = {"name": bot.user.name, "icon_url": bot.user.avatar_url}
+        desc = f"Action `{action}` with id: `{entry.id}`"
+        fields = [[f"User that got {action}ned", entry.target, False], [f"User who initiated the {action}", entry.user, False]]
+        if hasattr(entry, "reason"):
+            fields.append([f"Reason of the {entry.action}", entry.reason, False])
+        return [self.make_emb(title, desc, author, fields)]

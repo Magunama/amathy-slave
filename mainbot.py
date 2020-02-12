@@ -56,7 +56,9 @@ async def on_shard_ready(shard):
 async def on_raw_message_delete(payload):
     # Payload consists of RawMessageDeleteEvent
 
-    dest_id = check_logging_enabled(payload)
+    if not hasattr(payload, "guild_id"):
+        return
+    dest_id = check_logging_enabled(payload.guild_id)
     if not dest_id:
         return
     payload.bot_user = bot.user
@@ -70,7 +72,9 @@ async def on_raw_message_delete(payload):
 async def on_raw_bulk_message_delete(payload):
     # Payload consists of RawBulkMessageDeleteEvent
 
-    dest_id = check_logging_enabled(payload)
+    if not hasattr(payload, "guild_id"):
+        return
+    dest_id = check_logging_enabled(payload.guild_id)
     if not dest_id:
         return
     payload.bot_user = bot.user
@@ -82,4 +86,65 @@ async def on_raw_bulk_message_delete(payload):
 
 @bot.event
 async def on_raw_message_edit(payload):
+    # Payload consists of RawMessageUpdateEvent
+
+    chan_id = payload.channel_id
+    chan_obj = bot.get_channel(chan_id)
+    dest_id = check_logging_enabled(chan_obj.guild.id)
+    if not dest_id:
+        return
+    dest_chan = bot.get_channel(dest_id)
+    embs = Embed().message_edit(bot, payload)
+    for e in embs:
+        await dest_chan.send(embed=e)
+
+
+@bot.event
+async def on_member_join(member):
+    dest_id = check_logging_enabled(member.guild.id)
+    if not dest_id:
+        return
+    dest_chan = bot.get_channel(dest_id)
+    embs = Embed().member_join_left(bot, member, "joined")
+    for e in embs:
+        await dest_chan.send(embed=e)
+
+
+@bot.event
+async def on_member_remove(member):
+    dest_id = check_logging_enabled(member.guild.id)
+    if not dest_id:
+        return
+    dest_chan = bot.get_channel(dest_id)
+    embs = Embed().member_join_left(bot, member, "left")
+    for e in embs:
+        await dest_chan.send(embed=e)
+
+
+@bot.event
+async def on_member_update(before, after):
     pass
+
+
+@bot.event
+async def on_member_ban(guild, user):
+    async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.ban):
+        dest_id = check_logging_enabled(guild.id)
+        if not dest_id:
+            return
+        dest_chan = bot.get_channel(dest_id)
+        embs = Embed().member_ban_unban(bot, entry)
+        for e in embs:
+            await dest_chan.send(embed=e)
+
+
+@bot.event
+async def on_member_unban(guild, user):
+    async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.unban):
+        dest_id = check_logging_enabled(guild.id)
+        if not dest_id:
+            return
+        dest_chan = bot.get_channel(dest_id)
+        embs = Embed().member_ban_unban(bot, entry)
+        for e in embs:
+            await dest_chan.send(embed=e)
