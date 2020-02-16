@@ -15,7 +15,6 @@ class Eval(commands.Cog):
     @commands.command(name='eval', aliases=["e"])
     async def _eval(self, ctx, *, body):
         """Evaluates python code"""
-        # todo: check perms
         env = {
             'ctx': ctx,
             'bot': self.bot,
